@@ -5,13 +5,13 @@ import requests
 import json
 import sys
 
-from services import movies
-from services.movies import ROOT_MOVIES
+from services import queryDB_Service
+from services.queryDB_Service import ROOT_MOVIES
 
 
 class TestMoviesService(unittest.TestCase):
     def setUp(self):
-        self.app = movies.app.test_client()
+        self.app = queryDB_Service.app.test_client()
 
     def test_get_root(self):
         response = self.app.get('/')
