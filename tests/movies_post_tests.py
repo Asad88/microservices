@@ -17,7 +17,7 @@ class TestMoviesService(unittest.TestCase):
         data = {'db': 'database.db', 'tn': 'movies'}
 #         actual_reply = requests.post("{}".format(self.url),data)
 
-        print(actual_reply.text)
+#         print(actual_reply.text)
         self.assertTrue(True)
         # self.assertTrue(
         #                 "ceb0c09f-826c-4ed9-b1ad-8dbc6fe0cfa3" in actual_reply.text ,
