@@ -15,7 +15,7 @@ class TestMoviesService(unittest.TestCase):
         valid_mid="ceb0c09f-826c-4ed9-b1ad-8dbc6fe0cfa3"
         p = " id = '" + valid_mid +"'"
         data = {'db': 'database.db', 'tn': 'movies'}
-        actual_reply = requests.post("{}".format(self.url,'movielist'),data)
+        actual_reply = requests.post("{}".format(self.url),data)
 
         print(actual_reply.text)
 
