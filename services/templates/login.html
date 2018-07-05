@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<style>
+
+    #signup {
+        display: none;
+    }
+
+
+</style>
+<body>
+
+
+<form action=""  method="post"><h2>Sign in</h2>
+ user name:<br>
+ <input type="text" class="form_control"  name="uname" value="{{request.form.uname}}">
+ <br>
+   Password:<br>
+ <input type="password" class="form_control"  name="pass" value="{{request.form.pass}}"><br><br>
+
+       <label for="file">Choose Url to desierd DB</label>
+   <input type="file" id="file" name="db" single accept=".db">
+ </div>
+    <br>
+Table Name:<br>
+ <input type="text" class="form_control"  name="tn" value="{{tn}}">#}
+ <br>
+
+
+ <input type="submit" value="Submit">
+</form>
+
+</body>
+</html>

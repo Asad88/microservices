@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+</head>
+
+<body>
+
+
+<form action=""  method="post">
+  movie id :<br>
+    <input type="text" class="form_control"  name="mid" value="{{request.form.mid}}">#}
+    <br>
+   rating:<br>
+ <input type="text" class="form_control"  name="rating" value="{{request.form.rating}}"><br><br>
+
+    <br>
+     <div>
+     <br>
+   <label for="file">Choose Url to desierd DB</label>
+   <input type="file" id="file" name="db" single accept=".db">
+ </div>
+    <br>
+Table Name:<br>
+ <input type="text" class="form_control"  name="tn" value="{{tn}}">#}
+ <br>
+
+ <input type="submit" value="Submit">
+</form>
+</body>
+</html>
