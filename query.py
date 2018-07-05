@@ -72,6 +72,13 @@ def querydatabasebyID(db,table, id):
     return nice_json(cur.fetchall())
 
 
+def find(db,table, pra):
+    con = sqlite3.connect(db)
+    cur = con.cursor()
+    cur.execute("SELECT * from "+table+" WHERE "+pra)
+    return cur.fetchall()
+
+
 # def getinbyid(table, id=id):
 #     con = sqlite3.connect(MOVIES_DB)
 #     cur = con.cursor()
@@ -86,15 +93,16 @@ def update(oid,db ,table, record):
     cur = con.cursor()
     cur.execute("UPDATE " + table + " SET "+record+" WHERE ID = ?", (oid,))
 
-#
-# def three_max():
-#     con = sqlite3.connect(MOVIES_DB)
-#     cur = con.cursor()
-#     cur.execute("SELECT rating from MOVIES")
-#     test = cur.fetchall()
-#     max3 = sorted(test, reverse=True)[:3]
-#     print(max3)
-#     return max3
+
+def three_max(db ,table):
+    con = sqlite3.connect(db)
+    cur = con.cursor()
+    print("SELECT rating from "+table)
+    cur.execute("SELECT rating from "+table)
+    test = cur.fetchall()
+    max3 = sorted(test, reverse=True)[:3]
+    print(max3)
+    return max3
 
 #
 # def getnameuser(table, p):

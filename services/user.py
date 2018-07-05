@@ -1,92 +1,104 @@
-from services import root_dir, nice_json
-from flask import Flask
+from werkzeug.utils import redirect
+from flask import Flask, request, render_template, url_for, flash, session
+import os, datetime
 from werkzeug.exceptions import NotFound, ServiceUnavailable
 import json
+import query ,json
 import requests
 
 
 app = Flask(__name__)
-
-with open("{}/database/users.json".format(root_dir()), "r") as f:
-    users = json.load(f)
+app.secret_key = os.urandom(24)
 
 
 @app.route("/", methods=['GET'])
-def hello():
-    return nice_json({
-        "uri": "/",
-        "subresource_uris": {
-            "users": "/users",
-            "user": "/users/<username>",
-            "bookings": "/users/<username>/bookings",
-            "suggested": "/users/<username>/suggested"
-        }
-    })
+def root():
+    return render_template("user_main.html")
 
 
-@app.route("/users", methods=['GET'])
-def users_list():
-    return nice_json(users)
+@app.route("/register", methods=['GET','POST'])
+def register():
+    if request.method == 'POST':
+        record = str({request.form['uname'], datetime.datetime.now().strftime("%Y-%m-%d %H:%M") ,request.form['pass']})
+        data = {'db': "database.db", 'tn': "users", 'record': record}
+        print("posting :" + str(data))
+        try:
+            r = requests.post("http://127.0.0.1:5000/add_record", data=data)
+        except requests.exceptions.ConnectionError:
+            raise ServiceUnavailable("The Movie service is unavailable.")
+        return r.text
+
+    return render_template("signup.html")
 
 
-@app.route("/users/<username>", methods=['GET'])
-def user_record(username):
-    if username not in users:
-        raise NotFound
+@app.route("/login", methods=['GET','POST'])
+def login():
+    if request.method == 'POST':
+        p = " names = '"+request.form['uname']+"' and pass = '"+request.form['pass']+"'"
+        data = {'db': request.form['db'], 'tn': request.form['tn'],'pr': p}
+        print(data)
+        try:
+            r = requests.post("http://127.0.0.1:5000/dologin",data=data)
+            print(r.text)
+            if r.text == str(True):
+                session['uname'] = request.form['uname']
+                return redirect(url_for('save'))
+            else:
+                return "wrong credintials"
+        except requests.exceptions.ConnectionError:
+            raise ServiceUnavailable("The Movie service is unavailable.")
+    return render_template("login.html")
 
-    return nice_json(users[username])
 
-
-@app.route("/users/<username>/bookings", methods=['GET'])
-def user_bookings(username):
-    """
-    Gets booking information from the 'Bookings Service' for the user, and
-     movie ratings etc. from the 'Movie Service' and returns a list.
-    :param username:
-    :return: List of Users bookings
-    """
-    if username not in users:
-        raise NotFound("User '{}' not found.".format(username))
-
+@app.route("/list_movies", methods=['GET'])
+def list_movies():
+    if session is None:
+        return "set up DB firt. go to /logeduser/"
     try:
-        users_bookings = requests.get("http://127.0.0.1:5003/bookings/{}".format(username))
+        data = {'db': session['db'], 'tn': session['tn']}
+        r = requests.post("http://127.0.0.1:5001/movielist", data=data)
     except requests.exceptions.ConnectionError:
-        raise ServiceUnavailable("The Bookings service is unavailable.")
-
-    if users_bookings.status_code == 404:
-        raise NotFound("No bookings were found for {}".format(username))
-
-    users_bookings = users_bookings.json()
-
-    # For each booking, get the rating and the movie title
-    result = {}
-    for date, movies in users_bookings.iteritems():
-        result[date] = []
-        for movieid in movies:
-            try:
-                movies_resp = requests.get("http://127.0.0.1:5001/movies/{}".format(movieid))
-            except requests.exceptions.ConnectionError:
-                raise ServiceUnavailable("The Movie service is unavailable.")
-            movies_resp = movies_resp.json()
-            result[date].append({
-                "title": movies_resp["title"],
-                "rating": movies_resp["rating"],
-                "uri": movies_resp["uri"]
-            })
-
-    return nice_json(result)
+        raise ServiceUnavailable("The Movie service is unavailable.")
+    return r.text
 
 
-@app.route("/users/<username>/suggested", methods=['GET'])
-def user_suggested(username):
-    """
-    Returns movie suggestions. The algorithm returns a list of 3 top ranked
-    movies that the user has not yet booked.
-    :param username:
-    :return: Suggested movies
-    """
-    raise NotImplementedError()
+@app.route("/top3/", methods=['GET'])
+def top3():
+    if session is None:
+        return "set up DB first. go to /logeduser/"
+    try:
+        data = {'db': session['db'], 'tn': 'movies'}
+        r = requests.post("http://127.0.0.1:5000/topx", data=data)
+    except requests.exceptions.ConnectionError:
+        raise ServiceUnavailable("The Movie service is unavailable.")
+    return r.text
+
+
+@app.route("/logeduser/", methods=['GET','POST'])
+def save():
+    if request.method =='POST':
+        session['db'] = request.form['db']
+        session['tn'] = request.form['tn']
+        return render_template("redyuser.html")
+    return render_template("logeduser.html")
+
+
+
+@app.route("/order", methods=['GET', 'POST'])
+def order_movie():
+    if request.method == 'POST':
+        if session is None:
+            return "set up DB firt. go to /logeduser/"
+        try:
+            record = str({'mid': request.form['mid'], 'uid': session['uname'], 'date': request.form['date']})
+            data = {'db': request.form['db'], 'tn': request.form['tn'],'record': record }
+            r = requests.post("http://127.0.0.1:5000/add_record", data=data)
+        except requests.exceptions.ConnectionError:
+            raise ServiceUnavailable("The Movie service is unavailable.")
+        return r.text
+
+    return render_template('ordermovie.html')
 
 
 if __name__ == "__main__":
-    app.run(port=5000, debug=True)
+    app.run(port=5002, debug=True)
