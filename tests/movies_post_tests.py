@@ -11,7 +11,7 @@ class TestMoviesService(unittest.TestCase):
      def setUp(self):
         self.url = "http://127.0.0.1:5001/movielist"
 
-    def test_order_movie(self):
+     def test_order_movie(self):
         valid_mid="ceb0c09f-826c-4ed9-b1ad-8dbc6fe0cfa3"
         p = " id = '" + valid_mid +"'"
         data = {'db': 'database.db', 'tn': 'movies'}
