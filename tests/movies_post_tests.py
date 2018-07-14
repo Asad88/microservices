@@ -1,18 +1,21 @@
+import sqlite3
 import unittest
-from copy import deepcopy
 
+import flask
 import requests
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
 import json
+import sys
+
+from flask import Flask
+
+from services import movies
+from services.movies import movie_list
 
 from werkzeug.exceptions import ServiceUnavailable
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///../services/cmovies.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///../microservices/services/database.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-db = SQLAlchemy(app)
 
 
 def movie_list():
@@ -24,6 +27,14 @@ def movie_list():
         return r.text
 
 
+def sqlite_insert(conn, table, row):
+    cols = ', '.join('"{}"'.format(col) for col in row.keys())
+    vals = ', '.join(':{}'.format(col) for col in row.keys())
+    sql = 'INSERT INTO "{0}" ({1}) VALUES ({2})'.format(table, cols, vals)
+    conn.cursor().execute(sql, row)
+    conn.commit()
+
+
 class TestMoviesService(unittest.TestCase):
 
     def setUp(self):
@@ -31,10 +42,9 @@ class TestMoviesService(unittest.TestCase):
 
     def test_order_movie(self):
         movieid = movie_list()
-        print(movie_list())
         movieid2 ="503ab8df-5d5a-4e7d-a4fc-bcb39d2e6ab9"
-        if  movieid2 not in movieid:
-            data ={}
+        if movieid2 not in movieid:
+            data = {}
         else:
             data = movieid2
         actual_reply = {}
@@ -43,6 +53,16 @@ class TestMoviesService(unittest.TestCase):
                 actual_reply = movieid2
 
         self.assertEqual(data, actual_reply)
+
+    def test_add_movie(self):
+        record = str({'title':'TEST MOVIE', 'director':'Tomer Admon', 'rating':'9.3'})
+        data = {'db': 'database.db', 'tn': 'movies', 'record': record}
+        try:
+            r = requests.post("http://127.0.0.1:5000/add_record", data=data)
+        except requests.exceptions.ConnectionError:
+            raise ServiceUnavailable("The Movie service is unavailable.")
+        print(r.text)
+        self.assertIn('TEST MOVIE', str(json.loads(r.text)))
 
 
 GOOD_RESPONSES = {
