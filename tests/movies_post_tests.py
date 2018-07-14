@@ -62,7 +62,7 @@ class TestMoviesService(unittest.TestCase):
         except requests.exceptions.ConnectionError:
             raise ServiceUnavailable("The Movie service is unavailable.")
         print(r.text)
-        self.assertIn('TEST MOVIEss', str(json.loads(r.text)))
+        self.assertIn('REFFFFFFFF', str(json.loads(r.text)))
 
 
 GOOD_RESPONSES = {
